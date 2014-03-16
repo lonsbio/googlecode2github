@@ -52,10 +52,19 @@ def convert_file(proj_id, src_path, dst_dir):
     # Pull out pre-blocks.
     def sub_pre_block(match):
         pre = match.group(1)
+	# encapsulating ` ` escape not needed in Github flavoured markdown in pre blocks (but still needed)
+	pre = "\n" + pre.replace("`","") +"\n"
         hash = md5(pre.encode('utf8')).hexdigest()
         s_from_hash[hash] = _indent(pre)
         return hash
-    text = re.compile(r'^{{{\n(.*?)^}}}', re.M|re.S).sub(sub_pre_block, text)
+    text = re.compile(r'^<pre>(.*?)</pre>', re.M|re.S).sub(sub_pre_block, text)
+
+
+#replace {{{ pre blocks with groovy wrapper, but igonore otehr pre blocks
+    #text = re.compile(r'^{{{(\n.*?)^}}}', re.M|re.S).sub(sub_pre_block, "\n```groovy\n"+text+"\n```\n")
+    #text = re.compile(r'^{{{(.*?)^}}}',re.M).sub(lambda m: "```groovy\n %s\n```\n"%m.group(1).strip(), text)
+    text = re.compile(r'^{{{(.*?)\s*$', re.M).sub(lambda m: "```groovy %s\n"%m.group(1).strip(), text)
+    text = re.compile(r'^(.*?)}}}\s*$', re.M).sub(lambda m: "%s```\n"%m.group(1).strip(), text)
 
     # Headings.
     text = re.compile(r'^===(.*?)===\s*$', re.M).sub(lambda m: "### %s\n"%m.group(1).strip(), text)
@@ -133,7 +142,7 @@ def _indent(text):
 
 def _gh_page_name_from_gc_page_name(gc):
     """Github (gh) Wiki page name from Google Code (gc) Wiki page name."""
-    gh = re.sub(r'([A-Z][a-z]+)', r'-\1', gc)[1:]
+    gh = re.sub(r'([A-Za-z]+)', r'-\1', gc)[1:]
     return gh
 
 
