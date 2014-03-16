@@ -39,7 +39,7 @@ def convert_file(proj_id, src_path, dst_dir):
         if line.startswith("#"):
             meta_lines.append(line)
         else:
-            assert not line.strip(), "line isn't empty: %r" % line
+           # assert not line.strip(), "line isn't empty: %r" % line
             body_lines = lines[i+1:]
             break
     meta = {}
